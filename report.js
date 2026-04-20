@@ -195,4 +195,6 @@ var report = {
   ],
 };
 
-export default report;
+export { report };
+var jsonskus = JSON.stringify(report.skus);
+export { jsonskus };

@@ -1,7 +1,7 @@
 import { Client } from "pg";
 import express from "express";
 import tables from "./tables.js";
-import report from "./report.js";
+import { report, jsonskus } from "./report.js";
 import transformObj from "./transformObj.js";
 
 var { skus, ...totals } = report;
@@ -42,12 +42,14 @@ app.post("/insert", async (req, res) => {
                                               (${transformObj(Object.values(skus[3]))}),
                                               (${transformObj(Object.values(skus[4]))})`;
 
-  await client.query(reportTablePipeline);
+  var insertJsonPipeline = `INSERT INTO reports (skus) VALUES ('${jsonskus}::json); `; //(array['${jsonskus}']::json[]);
+  console.log(insertJsonPipeline)
+  await client.query(insertJsonPipeline);
   return res.json({ ok: "ok" });
 });
 
 app.post("/insertjson", async (req, res) => {
-  var pipeline = `UPDATE reports SET skus = array_append(skus, '${JSON.stringify({ data: { sku_name: "lenta", sku_id: 2 } })}') WHERE user_id = 'user_id123';`;
+  var pipeline = `UPDATE reports SET skus = ('${JSON.stringify({ data: { sku_name: "lenta", sku_id: 2 } })}') WHERE user_id = 'user_id123';`;
   console.log({ pipeline });
 
   await client.query(pipeline);
@@ -61,9 +63,9 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/getjson", async (req, res) => {
-  var { rows } = await client.query(`select skus[1]::json -> 'data' AS sku FROM reports ; `);
+  var { rows } = await client.query(`select skus FROM reports ; `);
   console.log({ rows: rows });
-  return res.json({ skus: rows });
+  return res.json({ rows });
 });
 
 app.get("/bykey", async (req, res) => {

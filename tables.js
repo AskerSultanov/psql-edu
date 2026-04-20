@@ -137,7 +137,7 @@ var reports = `CREATE TABLE IF NOT EXISTS reports (
                                             total_pre_tax_profit_of_end_year numeric NOT NULL DEFAULT 0,
                                             total_final_profit_ofendt_year numeric NOT NULL DEFAULT 0,
                                             total_profit_margin_of_end_year numeric NOT NULL DEFAULT 0,
-                                            skus json[] NOT NULL DEFAULT '{}'
+                                            skus json NOT NULL DEFAULT '{}'
                                             ) ;`;
 
 var skus = `CREATE TABLE IF NOT EXISTS skus (
