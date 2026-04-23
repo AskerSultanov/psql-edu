@@ -18,9 +18,7 @@ client.connect();
 var app = express();
 
 app.delete("/", async (req, res) => {
-  await client.query(
-    `DROP TABLE IF EXISTS users, skus, goods, reports, tokens,  tax_params, reports_trees, weekly_prices_and_discounts`,
-  );
+  await client.query(`DROP TABLE IF EXISTS users, skus, goods, reports, tokens,  tax_params, reports_trees, weekly_prices_and_discounts`);
   return res.json({ ok: "ok" });
 });
 
@@ -36,35 +34,43 @@ app.post("/insert", async (req, res) => {
                                        VALUES (${transformObj(Object.values(totals))}) ;`;
 
   var pipeline = `INSERT INTO skus (${transformObj(Object.keys(skus[0]), false)}) 
-                                       VALUES (${transformObj(Object.values(skus[0]))}), 
+                                       VALUES (${transformObj(Object.values(skus[0]))}),
                                               (${transformObj(Object.values(skus[1]))}),
                                               (${transformObj(Object.values(skus[2]))}),
                                               (${transformObj(Object.values(skus[3]))}),
                                               (${transformObj(Object.values(skus[4]))})`;
 
-  var insertJsonPipeline = `INSERT INTO reports (skus) VALUES ('${jsonskus}::json); `; //(array['${jsonskus}']::json[]);
-  console.log(insertJsonPipeline)
-  await client.query(insertJsonPipeline);
-  return res.json({ ok: "ok" });
-});
-
-app.post("/insertjson", async (req, res) => {
-  var pipeline = `UPDATE reports SET skus = ('${JSON.stringify({ data: { sku_name: "lenta", sku_id: 2 } })}') WHERE user_id = 'user_id123';`;
-  console.log({ pipeline });
-
+  await client.query(reportTablePipeline);
   await client.query(pipeline);
   return res.json({ ok: "ok" });
 });
 
+app.post("/insertjson", async (req, res) => {
+  for (var i = 0; i < skus.length; i++) {
+    var pipeline = `UPDATE reports SET skus = array_append(skus, '${JSON.stringify(skus[i])}') WHERE user_id = '96c98f5263d28febbe7a';`;
+
+    await client.query(pipeline);
+  }
+
+  return res.json({ ok: "ok" });
+});
+
 app.get("/", async (req, res) => {
-  var { rows } = await client.query(`SELECT * FROM skus WHERE user_id = '96c98f5263d28febbe7a' ;`);
-  console.log(rows);
-  return res.json({ rows });
+  var totals = (await client.query(`SELECT * FROM reports WHERE user_id = '96c98f5263d28febbe7a' ;`)).rows;
+  var skus = (await client.query(`SELECT * FROM skus  WHERE user_id = '96c98f5263d28febbe7a' ;`)).rows;
+  return res.json({ totals, skus });
 });
 
 app.post("/getjson", async (req, res) => {
   var { rows } = await client.query(`select skus FROM reports ; `);
   console.log({ rows: rows });
+  return res.json({ rows });
+});
+
+app.patch("/changejson", async (req, res) => {
+  var pipeline = `UPDATE reports  SET skus = jsonb_set(skus, '{1, sku_id}', '2'::jsonb) jsonb_set(skus, '{1, sku_name}', '"new_sku_name"'::jsonb) WHERE user_id = '96c98f5263d28febbe7a'`;
+  console.log({ pipeline });
+  var { rows } = await client.query(pipeline);
   return res.json({ rows });
 });
 

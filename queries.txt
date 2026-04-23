@@ -1,0 +1,7 @@
+----------------------------Работа с json массивом----------------------------
+
+Получить все данные json массива: SELECT jsonarray::json[] FROM table;
+Получить объект по индексу из json массива: SELECT jsonarray[index]::json FROM table;
+Получить значение поля объекта по индексу из json массива: SELECT jsonarray[index]::json -> 'fieldname' FROM table;
+Получить значения нескольких полей объекта по индексу из json массива: SELECT jsonarray[index]::json -> 'fieldname', jsonarray[index]::json -> 'fieldname' FROM table;
+Изменить поле jsob в массиве по индексу: UPDATE table SET array[jsonindexintoarray] = jsonb_set(array[jsonindexintoarray], path, 'value'::jsonb);

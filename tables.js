@@ -137,7 +137,7 @@ var reports = `CREATE TABLE IF NOT EXISTS reports (
                                             total_pre_tax_profit_of_end_year numeric NOT NULL DEFAULT 0,
                                             total_final_profit_ofendt_year numeric NOT NULL DEFAULT 0,
                                             total_profit_margin_of_end_year numeric NOT NULL DEFAULT 0,
-                                            skus json NOT NULL DEFAULT '{}'
+                                            skus jsonb
                                             ) ;`;
 
 var skus = `CREATE TABLE IF NOT EXISTS skus (
@@ -210,13 +210,4 @@ var skus = `CREATE TABLE IF NOT EXISTS skus (
                                             schema_version smallint NOT NULL DEFAULT 1
                                             )`;
 
-export default [
-  skus,
-  goods,
-  reports,
-  tax_params,
-  tokens,
-  weekly_prices_and_discounts,
-  users,
-  reports_trees,
-];
+export default [skus, goods, reports, tax_params, tokens, weekly_prices_and_discounts, users, reports_trees];
