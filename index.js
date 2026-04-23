@@ -1,16 +1,9 @@
 import { Client } from "pg";
 import express from "express";
 import tables from "./tables.js";
-import { report, jsonskus } from "./report.js";
+import { report } from "./report.js";
 import transformObj from "./transformObj.js";
-
-var { skus, ...totals } = report;
-
-var reportsSchema = `CREATE TABLE IF NOT EXISTS reports (
-  user_id text NOT NULL,
-  report_id integer PRIMARY KEY,
-  skus json[] NOT NULL DEFAULT '{}',
-)`;
+import dbUtils from "./collections/reports/index.js";
 
 var client = new Client(JSON.parse(process.env.options));
 client.connect();
@@ -29,19 +22,8 @@ app.post("/createtable", async (req, res) => {
   return res.json({ ok: "ok" });
 });
 
-app.post("/insert", async (req, res) => {
-  var reportTablePipeline = `INSERT INTO reports (${transformObj(Object.keys(totals), false)})
-                                       VALUES (${transformObj(Object.values(totals))}) ;`;
-
-  var pipeline = `INSERT INTO skus (${transformObj(Object.keys(skus[0]), false)}) 
-                                       VALUES (${transformObj(Object.values(skus[0]))}),
-                                              (${transformObj(Object.values(skus[1]))}),
-                                              (${transformObj(Object.values(skus[2]))}),
-                                              (${transformObj(Object.values(skus[3]))}),
-                                              (${transformObj(Object.values(skus[4]))})`;
-
-  await client.query(reportTablePipeline);
-  await client.query(pipeline);
+app.post("/savereport", async (req, res) => {
+  await dbUtils.saveReportToDb(client, report);
   return res.json({ ok: "ok" });
 });
 
@@ -56,9 +38,8 @@ app.post("/insertjson", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  var totals = (await client.query(`SELECT * FROM reports WHERE user_id = '96c98f5263d28febbe7a' ;`)).rows;
-  var skus = (await client.query(`SELECT * FROM skus  WHERE user_id = '96c98f5263d28febbe7a' ;`)).rows;
-  return res.json({ totals, skus });
+  var { report } = await dbUtils.getReportById(client, "96c98f5263d28febbe7a", 650668408);
+  return res.json({ report });
 });
 
 app.post("/getjson", async (req, res) => {
@@ -90,6 +71,11 @@ app.post("/drop", async (req, res) => {
   var pipeline = `DELETE FROM users ;`;
   var { rows } = await client.query(pipeline);
   return res.json({ rows });
+});
+
+app.delete("/deletereport", async (req, res) => {
+  var success = await dbUtils.deleteReportFromDb(client, "96c98f5263d28febbe7a", 650668408);
+  res.json({ success });
 });
 
 (async () => {
